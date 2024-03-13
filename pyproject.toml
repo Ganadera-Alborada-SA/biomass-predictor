@@ -1,0 +1,24 @@
+[tool.poetry]
+name = "biomass-predictor"
+version = "0.1.0"
+description = "Model to predict pasture biomass for Ganadera Alborada SA"
+authors = ["Rodrigo Parra <rodpar07@gmail.com>"]
+readme = "README.md"
+
+[tool.poetry.dependencies]
+python = "^3.12"
+pandas = "^2.2.1"
+sqlalchemy = "^2.0.28"
+psycopg2-binary = "^2.9.9"
+scikit-learn = "^1.4.1.post1"
+geopandas = "^0.14.3"
+tqdm = "^4.66.2"
+matplotlib = "^3.8.3"
+
+
+[tool.poetry.group.dev.dependencies]
+black = "^24.2.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
