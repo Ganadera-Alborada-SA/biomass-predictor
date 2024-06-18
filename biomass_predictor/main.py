@@ -23,6 +23,8 @@ if __name__ == "__main__":
         X, y, test_size=0.2, random_state=0
     )
 
-    models.linear_model(X_train, y_train)
-    models.random_forest(X_train, y_train)
-    models.neural_network(X_train, y_train)
+    # models.linear_model(X_train, y_train)
+    # models.random_forest(X_train, y_train)
+    # models.neural_network(X_train, y_train)
+
+    models.get_best_model(X_train, y_train)
