@@ -1,6 +1,7 @@
 import data
 import matplotlib.pyplot as plt
 import models
+import visualization
 
 from sklearn.model_selection import train_test_split
 
@@ -29,3 +30,4 @@ if __name__ == "__main__":
 
     reg = models.get_best_model(X_train, y_train)
     models.evaluate_model(reg, X_test, y_test)
+    visualization.visualize_residuals(reg, X_test, y_test)

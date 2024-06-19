@@ -29,5 +29,19 @@ def visualize_correlation_matrix():
     plt.show()
 
 
+def visualize_residuals(reg, X, y):
+    y = y.values.ravel()
+    y_pred = reg.predict(X)
+    residuals = y - y_pred
+    X["residual"] = residuals
+
+    ax = X.plot.scatter(x="previous_biomass", y="residual", c="DarkBlue")
+    ax = X.plot.scatter(x="cumulative_temperature", y="residual", c="DarkBlue")
+    ax = X.plot.scatter(x="cumulative_humidity", y="residual", c="DarkBlue")
+    ax = X.plot.scatter(x="cumulative_rain", y="residual", c="DarkBlue")
+    ax = X.plot.scatter(x="cumulative_light", y="residual", c="DarkBlue")
+    plt.show()
+
+
 if __name__ == "__main__":
     visualize_correlation_matrix()
