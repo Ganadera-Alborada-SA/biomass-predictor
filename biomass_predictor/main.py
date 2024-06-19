@@ -27,4 +27,5 @@ if __name__ == "__main__":
     # models.random_forest(X_train, y_train)
     # models.neural_network(X_train, y_train)
 
-    models.get_best_model(X_train, y_train)
+    reg = models.get_best_model(X_train, y_train)
+    models.evaluate_model(reg, X_test, y_test)

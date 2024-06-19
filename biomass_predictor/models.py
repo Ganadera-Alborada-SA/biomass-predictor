@@ -6,6 +6,7 @@ from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import cross_val_score, LeaveOneOut
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.pipeline import Pipeline
+from sklearn.metrics import root_mean_squared_error
 
 import optuna
 
@@ -68,19 +69,20 @@ class Objective:
         self.y = y
 
     def __call__(self, trial):
-        classifier_name = trial.suggest_categorical(
-            "classifier", ["LinearRegression", "RandomForest", "MLP"]
+        regressor_name = trial.suggest_categorical(
+            "regressor", ["LinearRegression", "RandomForest", "MLP"]
         )
-        if classifier_name == "LinearRegression":
-            classifier_obj = LinearRegression()
-        elif classifier_name == "RandomForest":
+        if regressor_name == "LinearRegression":
+            regressor_obj = LinearRegression()
+        elif regressor_name == "RandomForest":
             rf_max_depth = trial.suggest_int("rf_max_depth", 1, 32, log=True)
             rf_n_estimators = trial.suggest_int("rf_n_estimators", 10, 100, log=True)
             rf_max_features = trial.suggest_int("rf_max_features", 1, 4, log=True)
-            classifier_obj = RandomForestRegressor(
+            regressor_obj = RandomForestRegressor(
                 max_depth=rf_max_depth,
                 n_estimators=rf_n_estimators,
                 max_features=rf_max_features,
+                random_state=0,
             )
         else:
             mlp_number_hidden_layers = trial.suggest_int(
@@ -94,7 +96,7 @@ class Objective:
                 "mlp_learning_rate_init", 1e-4, 1, log=True
             )
             mlp_momentum = trial.suggest_float("mlp_momentum", 0, 1, step=0.1)
-            classifier_obj = Pipeline(
+            regressor_obj = Pipeline(
                 [
                     ("scaler", MinMaxScaler()),
                     (
@@ -112,7 +114,7 @@ class Objective:
                 ]
             )
 
-        score = np.mean(cross_val_score(classifier_obj, self.X, self.y, cv=5))
+        score = np.mean(cross_val_score(regressor_obj, self.X, self.y, cv=5))
         return score
 
 
@@ -121,6 +123,39 @@ def get_best_model(X, y):
         direction="maximize",
         storage="sqlite:///db.sqlite3",
         study_name="biomass_prediction",
+        load_if_exists=True,
     )
-    study.optimize(Objective(X, y.values.ravel()), n_trials=100)
-    print(study.best_trial)
+    if len(study.trials) == 0:
+        study.optimize(Objective(X, y.values.ravel()), n_trials=100)
+
+    reg = None
+    print(study.best_params)
+    match study.best_params["regressor"]:
+        case "LinearRegression":
+            reg = LinearRegression()
+        case "RandomForest":
+            reg = RandomForestRegressor(
+                max_depth=study.best_params["rf_max_depth"],
+                n_estimators=study.best_params["rf_n_estimators"],
+                max_features=study.best_params["rf_max_features"],
+            )
+        case "MLP":
+            reg = MLPRegressor(
+                hidden_layer_sizes=[5] * study.best_params["mlp_number_hidden_layers"],
+                alpha=study.best_params["mlp_alpha"],
+                learning_rate=study.best_params["mlp_learning_rate"],
+                learning_rate_init=study.best_params["mlp_learning_rate_init"],
+                max_iter=50000,
+                momentum=study.best_params["mlp_momentum"],
+                random_state=0,
+            )
+
+    reg.fit(X, y.values.ravel())  # type: ignore
+    return reg
+
+
+def evaluate_model(reg, X_test, y_test):
+    y_test = y_test.values.ravel()
+    print(f"Test  R^2 score {reg.score(X_test, y_test)}")
+    y_pred = reg.predict(X_test)
+    print(f"Test RMSE score {root_mean_squared_error(y_test, y_pred)}")
