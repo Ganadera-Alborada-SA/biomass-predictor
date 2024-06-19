@@ -115,6 +115,16 @@ class Objective:
             )
 
         score = np.mean(cross_val_score(regressor_obj, self.X, self.y, cv=5))
+        loocv_score = -np.mean(
+            cross_val_score(
+                regressor_obj,
+                self.X,
+                self.y,
+                cv=LeaveOneOut(),
+                scoring="neg_root_mean_squared_error",
+            )
+        )
+        trial.set_user_attr("loocv_score", loocv_score)
         return score
 
 
@@ -126,7 +136,7 @@ def get_best_model(X, y):
         load_if_exists=True,
     )
     if len(study.trials) == 0:
-        study.optimize(Objective(X, y.values.ravel()), n_trials=100)
+        study.optimize(Objective(X, y.values.ravel()), n_trials=10)
 
     reg = None
     print(study.best_params)
