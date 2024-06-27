@@ -44,4 +44,4 @@ def visualize_residuals(reg, X, y):
 
 
 if __name__ == "__main__":
-    visualize_correlation_matrix()
+    visualize_train_data()

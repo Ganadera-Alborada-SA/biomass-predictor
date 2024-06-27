@@ -1,7 +1,7 @@
 import numpy as np
 from pandas.core.common import random_state
 from sklearn.ensemble import RandomForestRegressor
-from sklearn.linear_model import LinearRegression
+from sklearn.linear_model import LinearRegression, Lasso
 from sklearn.neural_network import MLPRegressor
 from sklearn.model_selection import cross_val_score, LeaveOneOut
 from sklearn.preprocessing import MinMaxScaler
@@ -73,7 +73,10 @@ class Objective:
             "regressor", ["LinearRegression", "RandomForest", "MLP"]
         )
         if regressor_name == "LinearRegression":
-            regressor_obj = LinearRegression()
+            lr_alpha = trial.suggest_float("lr_alpha", 1e-10, 1000, log=True)
+            regressor_obj = Pipeline(
+                [("scaler", MinMaxScaler()), ("Linear", Lasso(alpha=lr_alpha))]
+            )
         elif regressor_name == "RandomForest":
             rf_max_depth = trial.suggest_int("rf_max_depth", 1, 32, log=True)
             rf_n_estimators = trial.suggest_int("rf_n_estimators", 10, 100, log=True)
@@ -86,16 +89,16 @@ class Objective:
             )
         else:
             mlp_number_hidden_layers = trial.suggest_int(
-                "mlp_number_hidden_layers", 1, 4
+                "mlp_number_hidden_layers", 1, 3
             )
-            mlp_alpha = trial.suggest_float("mlp_alpha", 1e-10, 1, log=True)
+            mlp_alpha = trial.suggest_float("mlp_alpha", 1e-5, 1000, log=True)
             mlp_learning_rate = trial.suggest_categorical(
                 "mlp_learning_rate", ["constant", "invscaling", "adaptive"]
             )
             mlp_learning_rate_init = trial.suggest_float(
-                "mlp_learning_rate_init", 1e-4, 1, log=True
+                "mlp_learning_rate_init", 1e-2, 0.7, log=True
             )
-            mlp_momentum = trial.suggest_float("mlp_momentum", 0, 1, step=0.1)
+            mlp_momentum = trial.suggest_float("mlp_momentum", 0, 0.9, step=0.1)
             regressor_obj = Pipeline(
                 [
                     ("scaler", MinMaxScaler()),
@@ -106,7 +109,7 @@ class Objective:
                             alpha=mlp_alpha,
                             learning_rate=mlp_learning_rate,
                             learning_rate_init=mlp_learning_rate_init,
-                            max_iter=50000,
+                            max_iter=500000,
                             momentum=mlp_momentum,
                             random_state=0,
                         ),
@@ -136,13 +139,13 @@ def get_best_model(X, y):
         load_if_exists=True,
     )
     if len(study.trials) == 0:
-        study.optimize(Objective(X, y.values.ravel()), n_trials=10)
+        study.optimize(Objective(X, y.values.ravel()), n_trials=50)
 
     reg = None
     print(study.best_params)
     match study.best_params["regressor"]:
         case "LinearRegression":
-            reg = LinearRegression()
+            reg = Lasso(alpha=study.best_params["lr_alpha"])
         case "RandomForest":
             reg = RandomForestRegressor(
                 max_depth=study.best_params["rf_max_depth"],
