@@ -7,7 +7,7 @@ El mismo se organiza en los siguientes archivos:
 - `data.py`: código para la obtención y preprocesamiento de datasets
 - `models.py`: código para el entrenamiento de modelos predictivos
 - `visualization.py`: código para la visualización de datos y resultados
-- `eval.py`: código para la evaluación de modelos entrenados
+- `notebook.py`: código de notebook interactivo para utilizar el modelo
 
 
 Adicionalmente, como parte del proyecto se implementaron diferentes notebooks exploratorios en Colab,

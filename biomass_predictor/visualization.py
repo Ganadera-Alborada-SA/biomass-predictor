@@ -40,6 +40,7 @@ def visualize_residuals(reg, X, y):
     ax = X.plot.scatter(x="cumulative_humidity", y="residual", c="DarkBlue")
     ax = X.plot.scatter(x="cumulative_rain", y="residual", c="DarkBlue")
     ax = X.plot.scatter(x="cumulative_light", y="residual", c="DarkBlue")
+    ax = X.plot.hist(column="residual")
     plt.show()
 
 

@@ -1,3 +1,5 @@
+from pickle import dump
+
 import data
 import matplotlib.pyplot as plt
 import models
@@ -29,5 +31,10 @@ if __name__ == "__main__":
     # models.neural_network(X_train, y_train)
 
     reg = models.get_best_model(X_train, y_train)
+    print(reg.coef_)  # type: ignore
+    print(reg.intercept_)  # type: ignore
     models.evaluate_model(reg, X_test, y_test)
     visualization.visualize_residuals(reg, X_test, y_test)
+
+    with open("model.pkl", "wb") as f:
+        dump(reg, f, protocol=5)

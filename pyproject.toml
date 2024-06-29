@@ -17,6 +17,7 @@ matplotlib = "^3.8.3"
 optuna = "^3.6.1"
 optuna-dashboard = "^0.15.1"
 seaborn = "^0.13.2"
+gradio = "^4.37.2"
 
 
 [tool.poetry.group.dev.dependencies]
